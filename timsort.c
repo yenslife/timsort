@@ -28,26 +28,22 @@ static struct list_head *merge(void *priv,
     struct list_head *head;
     struct list_head **tail = &head;
 
-    for (;;) {
+    while (a && b) {
         /* if equal, take 'a' -- important for sort stability */
         if (cmp(priv, a, b) <= 0) {
             *tail = a;
-            tail = &a->next; // tail 指向 a 的 next 指標，所以 *tail = a 會將 a 的 next 指標設為 a
+            tail = &a->next;
             a = a->next;
-            if (!a) {
-                *tail = b;
-                break;
-            }
         } else {
             *tail = b;
             tail = &b->next;
             b = b->next;
-            if (!b) {
-                *tail = a;
-                break;
-            }
         }
     }
+
+    /* Append the remaining elements */
+    *tail = a ? a : b;
+
     return head;
 }
 
