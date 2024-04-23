@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -11,6 +12,101 @@ static inline size_t run_size(struct list_head *head)
     if (!head->next)
         return 1;
     return (size_t) (head->next->prev);
+}
+
+static inline size_t merge_compute_minrun(size_t n)
+{
+    size_t r = 0;
+    while (n >= 64) {
+        r |= n & 1;
+        n >>= 1;
+    }
+    return n + r;
+}
+
+/* 
+  return head of the next run
+ */
+static struct list_head *binary_insertion_sort(void *priv,
+                                               list_cmp_func_t cmp,
+                                               struct list_head *head,
+                                               struct list_head *next,
+                                               size_t minrun,
+                                               size_t *len /* return length of run */)
+{    
+    /* 將 next 插入到 head 之後 */
+    struct list_head *prev = head, *list = next, *list_next;
+    while (prev->next) {
+        prev = prev->next; /* prev 指向 head 這個 run 的尾部 */
+    }
+    // printf("prev: %d, list: %d\n", list_entry(prev, element_t, list)->val, list_entry(list, element_t, list)->val);
+    if (list) 
+        list_next = list->next;
+    prev->next = list; /* 將 next 插入到 head 之後，這樣他就不是 NULL，需要重新找到 next */
+    list = prev;
+    list_next = list->next;
+    size_t i = 0;
+    while (i < minrun - (*len)) {
+        printf("minrun: %d, minrun - (*len) %d, i: %d\n", minrun, minrun - (*len), i);
+        if (!list) {
+            printf("list 為空\n");
+            break;
+        }
+        if (!list_next) {
+            printf("到底了, list: %d\n", list_entry(list, element_t, list)->val);
+            break;
+        }
+        printf("list: %d, list_next: %d\n", list_entry(list, element_t, list)->val, list_entry(list_next, element_t, list)->val);
+        if (cmp(priv, list, list_next) <= 0) {
+            printf("pass通過 不需要插入\n");
+            list = list_next;
+            list_next = list_next->next;
+        } else {
+            /* 出現遞減的情況，將 next 往前插入到合適的位置 */
+            printf("出現遞增，準備插入\n");
+            struct list_head *prev = head, *cur;
+            if (prev)
+                cur = prev->next;
+            // printf("cmp(priv, prev, list_next) %d, cmp(priv, list_next, cur) %d\n", cmp(priv, prev, list_next), cmp(priv, list_next, cur));
+            /* 如果比第一個小 */
+            if (cmp(priv, prev, list_next) > 0) {
+                printf("比第一個小\n");
+                list->next = list_next->next;
+                list_next->next = head;
+                head = list_next;
+                list_next = list->next;
+            } else {
+                while (cur && list_next && prev && !(cmp(priv, prev, list_next) <= 0 && cmp(priv, list_next, cur) <= 0)) {
+                    // printf("cmp(priv, prev, list_next) %d, cmp(priv, list_next, cur) %d\n", cmp(priv, prev, list_next), cmp(priv, list_next, cur));
+                    printf("prev: %d, cur: %d, list_next: %d\n", list_entry(prev, element_t, list)->val, list_entry(cur, element_t, list)->val, list_entry(list_next, element_t, list)->val);
+                    prev = cur;
+                    cur = cur->next; /* TODO: 解決這邊的無窮迴圈 */
+                }
+                printf("找到 list_next:%d 的插入點 prev:%d, cur:%d\n", list_entry(list_next, element_t, list)->val, list_entry(prev, element_t, list)->val, list_entry(cur, element_t, list)->val);
+                struct list_head *tmp = list_next->next;
+                list->next = tmp;
+                prev->next = list_next;
+                list_next->next = cur;
+                list_next = tmp;    
+            }
+
+            printf("插入完畢\n");
+            /* 印出插入結果 */
+            // for (struct list_head *pos = head; pos != NULL; pos = pos->next) {
+            //     if (pos->next == NULL)
+            //         printf("%d\n", list_entry(pos, element_t, list)->val);
+            //     else
+            //         printf("%d ", list_entry(pos, element_t, list)->val);
+            // }
+        }
+        i++;
+        (*len)++;
+        printf("len: %d\n", *len);
+    }
+    /* 將最後的節點指向 NULL */
+    prev->next = NULL;
+
+    return next;
 }
 
 /* 表示 run 的頭以及下一個 run 的頭 */
@@ -103,9 +199,11 @@ static void merge_final(void *priv,
  */
 static struct pair find_run(void *priv,
                             struct list_head *list,
-                            list_cmp_func_t cmp)
+                            list_cmp_func_t cmp,
+                            size_t minrun)
 {
     size_t len = 1;
+    size_t *len_ptr = &len;
     struct list_head *next = list->next, *head = list;
     struct pair result;
 
@@ -132,7 +230,19 @@ static struct pair find_run(void *priv,
             list = next;
             next = list->next;
         } while (next && cmp(priv, list, next) <= 0);
-        list->next = NULL;
+        list->next = NULL; /* 將 run 的尾部指向 NULL */
+    }
+    /* 把 run 的內容印出來 */
+    for (struct list_head *pos = head; pos != NULL; pos = pos->next) {
+        if (pos->next == NULL)
+            printf("%d\n", list_entry(pos, element_t, list)->val);
+        else
+            printf("%d ", list_entry(pos, element_t, list)->val);
+        // printf("%d ", list_entry(pos, element_t, list)->val);
+    }
+    if (len < minrun) {
+        /* 如果 run 的長度小於 minrun，就將 run 進行排序 */
+        next = binary_insertion_sort(priv, cmp, head, next, minrun, len_ptr);
     }
     head->prev = NULL;
     head->next->prev = (struct list_head *) len; /* prev 的指標被用來存儲長度 */
@@ -204,18 +314,36 @@ void timsort(void *priv, struct list_head *head, list_cmp_func_t cmp)
     if (head == head->prev)
         return;
 
+    /* Find the length of the list */
+    size_t len = 0;
+    struct list_head *pos;
+    list_for_each (pos, head)
+        len++;
+
+    /* Compute the minimum run length */
+    size_t minrun = merge_compute_minrun(len);
+    printf("minrun: %lu\n", minrun);
+
     /* Convert to a null-terminated singly-linked list. */
     head->prev->next = NULL;
 
     do {
         /* Find next run */
-        struct pair result = find_run(priv, list, cmp);
+        printf("找下一個 run\n");
+        struct pair result = find_run(priv, list, cmp, minrun);
+        printf("結束 find\n");
         result.head->prev = tp; /* 堆疊的下一個元素 */
         tp = result.head;
         list = result.next;
         stk_size++;
+        /* print current run content */
+        for (struct list_head *pos = &result.head; pos; pos = pos->next) {
+            printf("%d ", list_entry(pos, element_t, list)->val);
+        }
         tp = merge_collapse(priv, cmp, tp);
+        printf("結束當前 RUN\n");
     } while (list);
+    printf("加完 run 之後的 stk_size: %d\n", stk_size);
 
     /* End of input; merge together all the runs. */
     tp = merge_force_collapse(priv, cmp, tp);

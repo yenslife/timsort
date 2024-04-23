@@ -1,0 +1,138 @@
+Creating sample
+==== Testing timesort ====
+61 67 88 62 95 74 6 96 73 75 26 80 21 65 41 93 16 72 26 16 44 98 84 76 33 25 84 45 75 88 10 37 55 99 99 51 73 6 47 47 82 74 27 3 39 69 97 56 42 23 72 86 22 56 62 56 82 47 1 58 36 12 95 92 11 95 43 85 1 90 32 83 65 59 87 4 29 84 61 71 8 33 57 31 90 20 87 72 67 89 30 3 1 26 95 12 21 38 98 23 minrun: 50
+找下一個 run
+61 67 88
+minrun: 50, minrun - (*len) 47, i: 0
+list: 88, list_next: 62
+出現遞增，準備插入
+找到 list_next:62 的插入點 prev:61, cur:67
+插入完畢
+len: 4
+minrun: 50, minrun - (*len) 46, i: 1
+list: 88, list_next: 95
+pass通過 不需要插入
+len: 5
+minrun: 50, minrun - (*len) 45, i: 2
+list: 95, list_next: 74
+出現遞增，準備插入
+prev: 61, cur: 62, list_next: 74
+prev: 62, cur: 67, list_next: 74
+找到 list_next:74 的插入點 prev:67, cur:88
+插入完畢
+len: 6
+minrun: 50, minrun - (*len) 44, i: 3
+list: 95, list_next: 6
+出現遞增，準備插入
+比第一個小
+插入完畢
+len: 7
+minrun: 50, minrun - (*len) 43, i: 4
+list: 95, list_next: 96
+pass通過 不需要插入
+len: 8
+minrun: 50, minrun - (*len) 42, i: 5
+list: 96, list_next: 73
+出現遞增，準備插入
+prev: 6, cur: 61, list_next: 73
+prev: 61, cur: 62, list_next: 73
+prev: 62, cur: 67, list_next: 73
+找到 list_next:73 的插入點 prev:67, cur:74
+插入完畢
+len: 9
+minrun: 50, minrun - (*len) 41, i: 6
+list: 96, list_next: 75
+出現遞增，準備插入
+prev: 6, cur: 61, list_next: 75
+prev: 61, cur: 62, list_next: 75
+prev: 62, cur: 67, list_next: 75
+prev: 67, cur: 73, list_next: 75
+prev: 73, cur: 74, list_next: 75
+找到 list_next:75 的插入點 prev:74, cur:88
+插入完畢
+len: 10
+minrun: 50, minrun - (*len) 40, i: 7
+list: 96, list_next: 26
+出現遞增，準備插入
+找到 list_next:26 的插入點 prev:6, cur:61
+插入完畢
+len: 11
+minrun: 50, minrun - (*len) 39, i: 8
+list: 96, list_next: 80
+出現遞增，準備插入
+prev: 6, cur: 26, list_next: 80
+prev: 26, cur: 61, list_next: 80
+prev: 61, cur: 62, list_next: 80
+prev: 62, cur: 67, list_next: 80
+prev: 67, cur: 73, list_next: 80
+prev: 73, cur: 74, list_next: 80
+prev: 74, cur: 75, list_next: 80
+找到 list_next:80 的插入點 prev:75, cur:88
+插入完畢
+len: 12
+minrun: 50, minrun - (*len) 38, i: 9
+list: 96, list_next: 21
+出現遞增，準備插入
+找到 list_next:21 的插入點 prev:6, cur:26
+插入完畢
+len: 13
+minrun: 50, minrun - (*len) 37, i: 10
+list: 96, list_next: 65
+出現遞增，準備插入
+prev: 6, cur: 21, list_next: 65
+prev: 21, cur: 26, list_next: 65
+prev: 26, cur: 61, list_next: 65
+prev: 61, cur: 62, list_next: 65
+找到 list_next:65 的插入點 prev:62, cur:67
+插入完畢
+len: 14
+minrun: 50, minrun - (*len) 36, i: 11
+list: 96, list_next: 41
+出現遞增，準備插入
+prev: 6, cur: 21, list_next: 41
+prev: 21, cur: 26, list_next: 41
+找到 list_next:41 的插入點 prev:26, cur:61
+插入完畢
+len: 15
+minrun: 50, minrun - (*len) 35, i: 12
+list: 96, list_next: 93
+出現遞增，準備插入
+prev: 6, cur: 21, list_next: 93
+prev: 21, cur: 26, list_next: 93
+prev: 26, cur: 41, list_next: 93
+prev: 41, cur: 61, list_next: 93
+prev: 61, cur: 62, list_next: 93
+prev: 62, cur: 65, list_next: 93
+prev: 65, cur: 67, list_next: 93
+prev: 67, cur: 73, list_next: 93
+prev: 73, cur: 74, list_next: 93
+prev: 74, cur: 75, list_next: 93
+prev: 75, cur: 80, list_next: 93
+prev: 80, cur: 88, list_next: 93
+找到 list_next:93 的插入點 prev:88, cur:95
+插入完畢
+len: 16
+minrun: 50, minrun - (*len) 34, i: 13
+list: 96, list_next: 16
+出現遞增，準備插入
+找到 list_next:16 的插入點 prev:6, cur:21
+插入完畢
+len: 17
+minrun: 50, minrun - (*len) 33, i: 14
+list: 96, list_next: 72
+出現遞增，準備插入
+prev: 6, cur: 16, list_next: 72
+prev: 16, cur: 21, list_next: 72
+prev: 21, cur: 26, list_next: 72
+prev: 26, cur: 41, list_next: 72
+prev: 41, cur: 61, list_next: 72
+prev: 61, cur: 62, list_next: 72
+prev: 62, cur: 65, list_next: 72
+prev: 65, cur: 67, list_next: 72
+找到 list_next:72 的插入點 prev:67, cur:73
+插入完畢
+len: 18
+minrun: 50, minrun - (*len) 32, i: 15
+list: 96, list_next: 26
+出現遞增，準備插入
+pr

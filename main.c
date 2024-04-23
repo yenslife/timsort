@@ -6,20 +6,16 @@
 #include "list.h"
 #include "sort_impl.h"
 
-typedef struct {
-    struct list_head list;
-    int val;
-    int seq;
-} element_t;
 
-#define SAMPLES 1000
+
+#define SAMPLES 100
 
 static void create_sample(struct list_head *head, element_t *space, int samples)
 {
     printf("Creating sample\n");
     for (int i = 0; i < samples; i++) {
         element_t *elem = space + i;
-        elem->val = rand();
+        elem->val = rand() / (RAND_MAX / samples + 1);
         list_add_tail(&elem->list, head);
     }
 }
@@ -118,6 +114,22 @@ int main(void)
     element_t *testdata = malloc(sizeof(*testdata) * SAMPLES);
 
     create_sample(&sample_head, samples, nums);
+    // for (int i = 0; i < nums; i++) {
+    //     samples[i].seq = i;
+    //     warmdata[i].seq = i;
+    //     testdata[i].seq = i;
+    //     samples[i].val = i;
+    //     warmdata[i].val = i;
+    //     testdata[i].val = i;
+    // }
+    // for (size_t i = 0; i < nums; i++) {
+    //     // samples[i].seq = i;
+    //     // warmdata[i].seq = i;
+    //     // testdata[i].seq = i;
+    //     // samples[i].val = nums - i - 1;
+    //     // warmdata[i].val = nums - i - 1;
+    //     // testdata[i].val = nums - i - 1;
+    // }
 
     while (test->impl) {
         printf("==== Testing %s ====\n", test->name);
@@ -126,7 +138,12 @@ int main(void)
         INIT_LIST_HEAD(&testdata_head);
         copy_list(&sample_head, &testdata_head, testdata);
         copy_list(&sample_head, &warmdata_head, warmdata);
+        /* print the list */
+        for (element_t *entry = warmdata; entry < warmdata + nums; entry++) {
+            printf("%d ", entry->val);
+        }
         test->impl(&count, &warmdata_head, compare);
+
 
         /* Test */
         count = 0;
