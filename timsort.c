@@ -14,6 +14,11 @@ static inline size_t run_size(struct list_head *head)
     return (size_t) (head->next->prev);
 }
 
+/* 表示 run 的頭以及下一個 run 的頭 */
+struct pair { 
+    struct list_head *head, *next;
+};
+
 static inline size_t merge_compute_minrun(size_t n)
 {
     size_t r = 0;
@@ -27,7 +32,7 @@ static inline size_t merge_compute_minrun(size_t n)
 /* 
   return head of the next run
  */
-static struct list_head *binary_insertion_sort(void *priv,
+static struct pair *binary_insertion_sort(void *priv,
                                                list_cmp_func_t cmp,
                                                struct list_head *head,
                                                struct list_head *next,
@@ -108,15 +113,20 @@ static struct list_head *binary_insertion_sort(void *priv,
     }
     /* 將最後的節點指向 NULL */
     next = list_next;
+    printf("head: %d\n", list_entry(head, element_t, list)->val);
+    if (next)
+        printf("next: %d\n", list_entry(next, element_t, list)->val);
     prev->next = NULL;
 
-    return next;
+    struct pair *result = malloc(sizeof(struct pair));
+    result->head = head;
+    result->next = next;
+    // free(result);
+
+    return result;
 }
 
-/* 表示 run 的頭以及下一個 run 的頭 */
-struct pair { 
-    struct list_head *head, *next;
-};
+
 
 static size_t stk_size;
 
@@ -244,13 +254,17 @@ static struct pair find_run(void *priv,
         else
             printf("%d ", list_entry(pos, element_t, list)->val);
     }
+    struct pair *result_tmp;
     if (len < minrun) {
         /* 如果 run 的長度小於 minrun，就將 run 進行排序 */
-        next = binary_insertion_sort(priv, cmp, head, next, minrun, len_ptr);
+        result_tmp = binary_insertion_sort(priv, cmp, head, next, minrun, len_ptr);
     }
-    head->prev = NULL;
-    head->next->prev = (struct list_head *) len; /* prev 的指標被用來存儲長度 */
-    result.head = head, result.next = next; /* next is the start of next run */
+    result_tmp->head->prev = NULL;
+    result_tmp->next->prev = (struct list_head *) len; /* prev 的指標被用來存儲長度 */
+    result.head = &result_tmp->head, result.next = &result_tmp->next; /* next is the start of next run */
+    // head->prev = NULL;
+    // head->next->prev = (struct list_head *) len; /* prev 的指標被用來存儲長度 */
+    // result.head = head, result.next = next; /* next is the start of next run */
     return result;
 }
 
