@@ -35,6 +35,7 @@ static struct list_head *binary_insertion_sort(void *priv,
                                                size_t *len /* return length of run */)
 {    
     /* 將 next 插入到 head 之後 */
+    minrun = 10;
     struct list_head *prev = head, *list = next, *list_next;
     while (prev->next) {
         prev = prev->next; /* prev 指向 head 這個 run 的尾部 */
@@ -45,9 +46,9 @@ static struct list_head *binary_insertion_sort(void *priv,
     prev->next = list; /* 將 next 插入到 head 之後，這樣他就不是 NULL，需要重新找到 next */
     list = prev;
     list_next = list->next;
-    size_t i = 0;
-    while (i < minrun - (*len)) {
-        printf("minrun: %d, minrun - (*len) %d, i: %d\n", minrun, minrun - (*len), i);
+    // (*len) = 1;
+    while (minrun - (*len)) {
+        printf("minrun: %d, minrun - (*len) %d, i: %d\n", minrun, minrun - (*len));
         if (!list) {
             printf("list 為空\n");
             break;
@@ -78,11 +79,11 @@ static struct list_head *binary_insertion_sort(void *priv,
             } else {
                 while (cur && list_next && prev && !(cmp(priv, prev, list_next) <= 0 && cmp(priv, list_next, cur) <= 0)) {
                     // printf("cmp(priv, prev, list_next) %d, cmp(priv, list_next, cur) %d\n", cmp(priv, prev, list_next), cmp(priv, list_next, cur));
-                    printf("prev: %d, cur: %d, list_next: %d\n", list_entry(prev, element_t, list)->val, list_entry(cur, element_t, list)->val, list_entry(list_next, element_t, list)->val);
+                    // printf("prev: %d, cur: %d, list_next: %d\n", list_entry(prev, element_t, list)->val, list_entry(cur, element_t, list)->val, list_entry(list_next, element_t, list)->val);
                     prev = cur;
                     cur = cur->next; /* TODO: 解決這邊的無窮迴圈 */
                 }
-                printf("找到 list_next:%d 的插入點 prev:%d, cur:%d\n", list_entry(list_next, element_t, list)->val, list_entry(prev, element_t, list)->val, list_entry(cur, element_t, list)->val);
+                // printf("找到 list_next:%d 的插入點 prev:%d, cur:%d\n", list_entry(list_next, element_t, list)->val, list_entry(prev, element_t, list)->val, list_entry(cur, element_t, list)->val);
                 struct list_head *tmp = list_next->next;
                 list->next = tmp;
                 prev->next = list_next;
@@ -92,18 +93,21 @@ static struct list_head *binary_insertion_sort(void *priv,
 
             printf("插入完畢\n");
             /* 印出插入結果 */
-            // for (struct list_head *pos = head; pos != NULL; pos = pos->next) {
-            //     if (pos->next == NULL)
-            //         printf("%d\n", list_entry(pos, element_t, list)->val);
-            //     else
-            //         printf("%d ", list_entry(pos, element_t, list)->val);
-            // }
+            int i = (*len);
+            printf("%d *len\n", *len);
+            for (struct list_head *pos = head; pos != NULL && i >= 0; pos = pos->next) {
+                if (pos->next == NULL)
+                    printf("%d\n", list_entry(pos, element_t, list)->val);
+                else
+                    printf("%d ", list_entry(pos, element_t, list)->val);
+                i--;
+            }
         }
-        i++;
         (*len)++;
         printf("len: %d\n", *len);
     }
     /* 將最後的節點指向 NULL */
+    next = list_next;
     prev->next = NULL;
 
     return next;
@@ -187,6 +191,7 @@ static void merge_final(void *priv,
             }
         }
     }
+    printf("end merge in final merge\n");
 
     /* Finish linking remainder of list b on to tail */
     build_prev_link(head, tail, b);
@@ -238,7 +243,6 @@ static struct pair find_run(void *priv,
             printf("%d\n", list_entry(pos, element_t, list)->val);
         else
             printf("%d ", list_entry(pos, element_t, list)->val);
-        // printf("%d ", list_entry(pos, element_t, list)->val);
     }
     if (len < minrun) {
         /* 如果 run 的長度小於 minrun，就將 run 進行排序 */
@@ -332,14 +336,15 @@ void timsort(void *priv, struct list_head *head, list_cmp_func_t cmp)
         printf("找下一個 run\n");
         struct pair result = find_run(priv, list, cmp, minrun);
         printf("結束 find\n");
+        /* print current run content */
+        struct list_head *pos = &result.head;
+        for (pos = pos->next; pos; pos = pos->next) {
+            printf("%d ", list_entry(pos, element_t, list)->val);
+        }
         result.head->prev = tp; /* 堆疊的下一個元素 */
         tp = result.head;
         list = result.next;
         stk_size++;
-        /* print current run content */
-        for (struct list_head *pos = &result.head; pos; pos = pos->next) {
-            printf("%d ", list_entry(pos, element_t, list)->val);
-        }
         tp = merge_collapse(priv, cmp, tp);
         printf("結束當前 RUN\n");
     } while (list);
@@ -356,5 +361,6 @@ void timsort(void *priv, struct list_head *head, list_cmp_func_t cmp)
         build_prev_link(head, head, stk0); // 需要重新建立 prev 指標，因為 merge_at() 會修改 prev 指標
         return;
     }
+    printf("final_merge\n");
     merge_final(priv, cmp, head, stk1, stk0);
 }
